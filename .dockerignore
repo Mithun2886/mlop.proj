@@ -1,4 +1,8 @@
 myenv3/
+Unit 3/
 __pycache__/
 *.py[cod]
 .git/
+models/
+mlruns/
+mlflow.db

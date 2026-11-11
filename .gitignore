@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+myenv3/
+mlflow.db
+mlartifacts/
+models/

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="theme-color" content="#183b34">
+	<title>Fieldnote | California home value</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--ink: #1d2925;
+			--muted: #64716b;
+			--paper: #f3f5ef;
+			--line: #d7ddd4;
+			--green: #183b34;
+			--green-light: #dce8df;
+			--citrus: #e5ee7d;
+			--rust: #b75236;
+			--white: #fffefa;
+			font-family: "Aptos", "Segoe UI", sans-serif;
+			font-synthesis: none;
+		}
+
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			color: var(--ink);
+			background-color: var(--paper);
+			background-image: radial-gradient(#d7ddd4 0.65px, transparent 0.65px);
+			background-size: 15px 15px;
+		}
+		button, input { font: inherit; }
+		.masthead {
+			min-height: 74px;
+			padding: 0 clamp(20px, 5vw, 76px);
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 20px;
+			color: var(--white);
+			background: var(--green);
+			border-bottom: 4px solid var(--citrus);
+		}
+		.brand { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
+		.brand-mark { width: 25px; height: 25px; border: 1px solid var(--citrus); display: grid; place-items: center; color: var(--citrus); font: 16px Georgia, serif; }
+		.masthead-note { color: #d5e0d9; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+		main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 54px 0 70px; }
+		.intro { display: flex; justify-content: space-between; align-items: end; gap: 28px; margin-bottom: 34px; animation: arrive 420ms ease-out both; }
+		.eyebrow { margin: 0 0 12px; color: var(--rust); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+		h1 { max-width: 650px; margin: 0; font: 500 clamp(34px, 4vw, 54px)/1.02 Georgia, "Times New Roman", serif; letter-spacing: 0; }
+		.intro-copy { max-width: 260px; margin: 0 0 4px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+		.workspace { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(270px, 0.8fr); gap: 20px; align-items: stretch; animation: arrive 520ms 70ms ease-out both; }
+		.form-panel { padding: clamp(22px, 3vw, 34px); background: var(--white); border: 1px solid var(--line); }
+		.panel-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+		h2 { margin: 0; font-size: 15px; font-weight: 750; }
+		.panel-heading span { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+		.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 21px 18px; padding: 24px 0 28px; }
+		label { display: block; min-width: 0; }
+		.label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+		.label-name { color: #34423c; font-size: 12px; font-weight: 700; }
+		.label-unit { color: #849087; font-size: 10px; text-align: right; }
+		input { width: 100%; height: 43px; padding: 0 12px; color: var(--ink); background: #fbfcf8; border: 1px solid #cdd5cc; border-radius: 2px; outline: none; transition: border-color 140ms ease, box-shadow 140ms ease; }
+		input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #183b341c; }
+		.form-actions { display: flex; align-items: center; gap: 18px; }
+		.primary { min-height: 46px; padding: 0 19px; color: var(--white); background: var(--green); border: 0; border-radius: 2px; cursor: pointer; font-size: 13px; font-weight: 700; transition: background 140ms ease, transform 140ms ease; }
+		.primary:hover { background: #245347; transform: translateY(-1px); }
+		.primary:disabled { opacity: 0.65; cursor: wait; transform: none; }
+		.reset { padding: 8px 0; color: var(--muted); background: none; border: 0; cursor: pointer; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+		.estimate-panel { min-height: 100%; display: flex; flex-direction: column; padding: 29px; color: var(--white); background: var(--green); border-top: 5px solid var(--citrus); }
+		.estimate-kicker { color: #d0dfd5; font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; }
+		.estimate-value { margin: 26px 0 12px; color: var(--citrus); font: 500 clamp(36px, 4vw, 48px)/1 Georgia, "Times New Roman", serif; overflow-wrap: anywhere; }
+		.estimate-copy { max-width: 260px; margin: 0; color: #e0e8e2; font-size: 13px; line-height: 1.65; }
+		.estimate-divider { height: 1px; margin: auto 0 20px; background: #ffffff30; }
+		.model-caption { margin: 0; color: #e0e8e2; font-size: 11px; line-height: 1.7; }
+		.model-caption strong { color: var(--white); font-weight: 700; }
+		.status { min-height: 20px; margin: 12px 0 0; color: var(--rust); font-size: 12px; }
+		.fine-print { margin: 19px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+		@keyframes arrive { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+		@media (max-width: 760px) {
+			main { padding-top: 36px; }
+			.intro { display: block; }
+			.intro-copy { margin-top: 16px; }
+			.workspace { grid-template-columns: 1fr; }
+			.estimate-panel { min-height: 280px; }
+			.estimate-divider { margin-top: 35px; }
+		}
+		@media (max-width: 480px) {
+			.masthead { min-height: 64px; }
+			.masthead-note { max-width: 120px; text-align: right; line-height: 1.5; }
+			main { width: min(100% - 28px, 1120px); }
+			.field-grid { grid-template-columns: 1fr; gap: 17px; }
+			.form-actions { align-items: flex-start; flex-direction: column; gap: 8px; }
+			.primary { width: 100%; }
+		}
+		@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+	</style>
+</head>
+<body>
+	<header class="masthead">
+		<div class="brand"><span class="brand-mark" aria-hidden="true">F</span><span>FIELDNOTE / PROPERTY</span></div>
+		<div class="masthead-note">California benchmark · 1990 census</div>
+	</header>
+	<main>
+		<section class="intro" aria-labelledby="page-title">
+			<div>
+				<p class="eyebrow">A machine-learning estimate</p>
+				<h1 id="page-title">Read the shape<br>of a place.</h1>
+			</div>
+			<p class="intro-copy">Describe a California census block. The model estimates its median home value from neighborhood and household statistics.</p>
+		</section>
+		<section class="workspace" aria-label="Property value estimator">
+			<form class="form-panel" id="property-form">
+				<div class="panel-heading"><h2>Property profile</h2><span>8 features</span></div>
+				<div class="field-grid">
+					<label><span class="label-row"><span class="label-name">Median income</span><span class="label-unit">$10,000 units</span></span><input name="MedInc" type="number" min="0" max="15" step="0.01" value="3.87" required></label>
+					<label><span class="label-row"><span class="label-name">Median house age</span><span class="label-unit">years</span></span><input name="HouseAge" type="number" min="1" max="52" step="1" value="29" required></label>
+					<label><span class="label-row"><span class="label-name">Average rooms</span><span class="label-unit">per household</span></span><input name="AveRooms" type="number" min="1" max="20" step="0.1" value="5.4" required></label>
+					<label><span class="label-row"><span class="label-name">Average bedrooms</span><span class="label-unit">per household</span></span><input name="AveBedrms" type="number" min="0.1" max="10" step="0.1" value="1.1" required></label>
+					<label><span class="label-row"><span class="label-name">Population</span><span class="label-unit">block group</span></span><input name="Population" type="number" min="1" max="40000" step="1" value="1425" required></label>
+					<label><span class="label-row"><span class="label-name">Average occupancy</span><span class="label-unit">people / household</span></span><input name="AveOccup" type="number" min="1" max="20" step="0.1" value="3.0" required></label>
+					<label><span class="label-row"><span class="label-name">Latitude</span><span class="label-unit">32.5 to 42.0 N</span></span><input name="Latitude" type="number" min="32.5" max="42" step="0.0001" value="37.8" required></label>
+					<label><span class="label-row"><span class="label-name">Longitude</span><span class="label-unit">-124.5 to -114.1 W</span></span><input name="Longitude" type="number" min="-124.5" max="-114.1" step="0.0001" value="-122.2" required></label>
+				</div>
+				<div class="form-actions">
+					<button class="primary" type="submit">Calculate estimate <span aria-hidden="true">&#8594;</span></button>
+					<button class="reset" type="reset">Reset values</button>
+				</div>
+				<p class="status" id="status" role="status" aria-live="polite"></p>
+				<p class="fine-print">This benchmark reflects 1990 California census data. It is a historical model estimate, not a current appraisal or offer.</p>
+			</form>
+			<aside class="estimate-panel" aria-live="polite" aria-label="Estimated median home value">
+				<span class="estimate-kicker">Estimated median value</span>
+				<output class="estimate-value" id="estimate">--</output>
+				<p class="estimate-copy" id="estimate-copy">Enter a neighborhood profile to see the model's estimate.</p>
+				<div class="estimate-divider"></div>
+				<p class="model-caption"><strong>Model</strong><br>Random forest regression<br>California Housing dataset</p>
+			</aside>
+		</section>
+	</main>
+	<script>
+		const form = document.querySelector("#property-form");
+		const status = document.querySelector("#status");
+		const estimate = document.querySelector("#estimate");
+		const estimateCopy = document.querySelector("#estimate-copy");
+		const submitButton = form.querySelector("button[type='submit']");
+		const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+		form.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			if (!form.reportValidity()) return;
+			const payload = Object.fromEntries(new FormData(form).entries());
+			status.textContent = "";
+			submitButton.disabled = true;
+			submitButton.textContent = "Calculating...";
+
+			try {
+				const response = await fetch("/predict", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload)
+				});
+				const result = await response.json();
+				if (!response.ok) throw new Error(result.error || "The estimate could not be calculated.");
+				estimate.textContent = currency.format(result.estimate);
+				estimateCopy.textContent = "Model estimate for this California census-block profile.";
+			} catch (error) {
+				status.textContent = error.message;
+			} finally {
+				submitButton.disabled = false;
+				submitButton.innerHTML = 'Calculate estimate <span aria-hidden="true">&#8594;</span>';
+			}
+		});
+
+		form.addEventListener("reset", () => {
+			status.textContent = "";
+			estimate.textContent = "--";
+			estimateCopy.textContent = "Enter a neighborhood profile to see the model's estimate.";
+		});
+	</script>
+</body>
+</html>
