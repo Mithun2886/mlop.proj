@@ -11,13 +11,31 @@ on:
 
 permissions:
   contents: read
+  packages: write
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -25,18 +43,8 @@ jobs:
       - name: Set image name
         id: image
         shell: bash
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          IMAGE_REPOSITORY="${GITHUB_REPOSITORY##*/}"
-          echo "name=${DOCKERHUB_USERNAME,,}/${IMAGE_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
-
-      - name: Log in to Docker Hub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
       - name: Generate image metadata
         id: meta
@@ -49,13 +57,70 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and publish image
+      - name: Build image for validation
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          load: true
+          tags: california-home-estimator:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Start containers
+        run: docker compose up --detach --no-build
+
+      - name: Smoke-test API and Streamlit
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:5000/ >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose logs
+              exit 1
+            fi
+            sleep 2
+          done
+
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:8501/ >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose logs
+              exit 1
+            fi
+            sleep 2
+          done
+
+          status=$(curl --silent --show-error --output response.json --write-out '%{http_code}' \
+            --header 'Content-Type: application/json' \
+            --data '{"MedInc":8.3252,"HouseAge":41,"AveRooms":6.984127,"AveBedrms":1.02381,"Population":322,"AveOccup":2.555556,"Latitude":37.88,"Longitude":-122.23}' \
+            http://127.0.0.1:5000/predict)
+          test "$status" = "200"
+          python -c "import json; response=json.load(open('response.json')); assert isinstance(response['estimate'], (int, float)); assert response['currency'] == 'USD'"
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down --volumes
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish validated image to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          
